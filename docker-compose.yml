@@ -1,20 +1,6 @@
 version: '3'
 
 services:
-    ports:
-     - 5432:5432
-    environment:
-      POSTGRES_PASSWORD: Stone@*2021
-      POSTGRES_DB: db-api-contract
-    image: postgres:11.3-alpine
-    networks:
-      default:
-        ipv4_address: 10.50.0.240
-      proxy:
-        aliases:
-          - db.stone.api.contract.localtest.me
-    volumes:
-      - db:/var/opt/mssql
   postgres:
     environment:
       POSTGRES_DB: keycloak
@@ -22,11 +8,8 @@ services:
       POSTGRES_PASSWORD: postgres
     image: postgres:11.3-alpine
     volumes:
-      - postgres:/var/lib/postgresql/data
-     
-  mailhog:
-    image: mailhog/mailhog
-
+      - keycloak-postgres:/var/lib/postgresql/data
+  
   keycloak:
     command: -b 0.0.0.0 -bmanagement 0.0.0.0 -c standalone-ha.xml
     image: jboss/keycloak:6.0.1
@@ -49,14 +32,6 @@ services:
       - ./keycloak/themes/stone:/opt/jboss/keycloak/themes/stone
       - keycloak-discovery:/var/lib/jgroups
 
-  default:
-    ipam:
-      driver: default
-      config:
-        - subnet: '10.50.0.0/24'
-  proxy:
-    external: true
-
 volumes:
   keycloak-discovery:
-  postgres:
+  keycloak-postgres:
