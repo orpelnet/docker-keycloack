@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+    ports:
+     - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: Stone@*2021
+      POSTGRES_DB: db-api-contract
+    image: postgres:11.3-alpine
+    networks:
+      default:
+        ipv4_address: 10.50.0.240
+      proxy:
+        aliases:
+          - db.stone.api.contract.localtest.me
+    volumes:
+      - db:/var/opt/mssql
+  postgres:
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    image: postgres:11.3-alpine
+    volumes:
+      - postgres:/var/lib/postgresql/data
+     
+  mailhog:
+    image: mailhog/mailhog
+
+  keycloak:
+    command: -b 0.0.0.0 -bmanagement 0.0.0.0 -c standalone-ha.xml
+    image: jboss/keycloak:6.0.1
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    environment:
+      DB_ADDR: postgres
+      DB_PASSWORD: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_VENDOR: postgres
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_USER: admin
+      PROXY_ADDRESS_FORWARDING: "true"
+    volumes:
+      - ./keycloak/discovery:/opt/jboss/tools/cli/jgroups/discovery
+      - ./keycloak/startup-scripts:/opt/jboss/startup-scripts/
+      - ./keycloak/themes/stone:/opt/jboss/keycloak/themes/stone
+      - keycloak-discovery:/var/lib/jgroups
+
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: '10.50.0.0/24'
+  proxy:
+    external: true
+
+volumes:
+  keycloak-discovery:
+  postgres:
